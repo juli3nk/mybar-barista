@@ -12,9 +12,9 @@ import (
 
 func outputLocaltime(now time.Time) bar.Output {
 	return outputs.Pango(
-		pango.Icon("material-today").Color(colors.Scheme("dim-icon")),
+		pango.Text("󰃶").Color(colors.Scheme("dim-icon")),
 		now.Format("Mon Jan 2 "),
-		pango.Icon("material-access-time").Color(colors.Scheme("dim-icon")),
+		pango.Text("󱑏").Color(colors.Scheme("dim-icon")),
 		now.Format("15:04:05"),
 	).OnClick(click.RunLeft("gsimplecal"))
 }

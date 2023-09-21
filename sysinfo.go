@@ -46,9 +46,10 @@ func threshold(out *bar.Segment, urgent bool, color ...bool) *bar.Segment {
 	return out
 }
 
+// icon: cpu
 func outputLoadAvg(s sysinfo.Info) bar.Output {
 	out := outputs.Pango(
-		pango.Icon("mdi-desktop-tower").Alpha(0.6),
+		pango.Text("").Alpha(0.6),
 		pango.Textf("%0.2f", s.Loads[0]),
 	)
 
@@ -70,6 +71,7 @@ func outputLoadAvg(s sysinfo.Info) bar.Output {
 	return out
 }
 
+// icon: trending-up
 func outputUptime(s sysinfo.Info) bar.Output {
 	u := s.Uptime
 	var uptimeOut *pango.Node
@@ -80,13 +82,14 @@ func outputUptime(s sysinfo.Info) bar.Output {
 		uptimeOut = pango.Textf("%dd%02dh",
 			int(u.Hours()/24), int(u.Hours())%24)
 	}
-	return pango.Icon("mdi-trending-up").Alpha(0.6).Concat(uptimeOut)
+	return pango.Text("󰔵").Alpha(0.6).Concat(uptimeOut)
 }
 
 // Free memory
+// icon: memory
 func outputFreeMem(m meminfo.Info) bar.Output {
 	out := outputs.Pango(
-		pango.Icon("material-memory").Alpha(0.8),
+		pango.Text("󰍛").Alpha(0.8),
 		format.IBytesize(m.Available()),
 	)
 	freeGigs := m.Available().Gigabytes()
@@ -104,7 +107,7 @@ func outputFreeMem(m meminfo.Info) bar.Output {
 // Swap memory
 func outputSwapMem(m meminfo.Info) bar.Output {
 	return outputs.Pango(
-		pango.Icon("mdi-swap-horizontal").Alpha(0.8),
+		pango.Text("󰓡").Alpha(0.8),
 		format.IBytesize(m["SwapTotal"]-m["SwapFree"]), spacer,
 		pango.Textf("(% 2.0f%%)", (1-m.FreeFrac("Swap"))*100.0).Small(),
 	)
@@ -112,7 +115,7 @@ func outputSwapMem(m meminfo.Info) bar.Output {
 
 func outputTemp(temp unit.Temperature) bar.Output {
 	out := outputs.Pango(
-		pango.Icon("mdi-fan").Alpha(0.6), spacer,
+		pango.Text("󰈐").Alpha(0.6), spacer,
 		pango.Textf("%2d℃", int(temp.Celsius())),
 	)
 	threshold(out,

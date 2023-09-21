@@ -24,10 +24,6 @@ import (
 	"barista.run/group/modal"
 	"barista.run/outputs"
 	"barista.run/pango"
-	"barista.run/pango/icons/fontawesome"
-	"barista.run/pango/icons/material"
-	"barista.run/pango/icons/mdi"
-	"barista.run/pango/icons/typicons"
 
 	"barista.run/modules/battery"
 	"barista.run/modules/clock"
@@ -45,16 +41,10 @@ var spacer = pango.Text(" ").XXSmall()
 var mainModalController modal.Controller
 
 func makeIconOutput(key string) *bar.Segment {
-	return outputs.Pango(spacer, pango.Icon(key), spacer)
+	return outputs.Pango(spacer, pango.Text(key), spacer)
 }
 
 func main() {
-	// Fonts
-	material.Load(home(".local/Github/material-design-icons"))
-	mdi.Load(home(".local/Github/MaterialDesign-Webfont"))
-	typicons.Load(home(".local/Github/typicons.font"))
-	fontawesome.Load(home(".local/Github/Font-Awesome"))
-
 	// Config
 	colors.LoadBarConfig()
 	bg := colors.Scheme("background")
@@ -104,14 +94,14 @@ func main() {
 	mainModal := modal.New()
 
 	mainModal.Mode("sysinfo").
-		SetOutput(makeIconOutput("mdi-chart-areaspline")).
+		SetOutput(makeIconOutput("󰄧")).
 		Add(loadAvg).
 		Detail(loadAvgDetail, uptime).
 		Add(freeMem).
 		Detail(swapMem, temp)
 
 	mainModal.Mode("network").
-		SetOutput(makeIconOutput("mdi-ethernet")).
+		SetOutput(makeIconOutput("󰈀")).
 		Add(wifiName).
 		Detail(wifiDetails)
 
