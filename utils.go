@@ -4,17 +4,48 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/barista-run/barista/bar"
+	"github.com/barista-run/barista/colors"
+	"github.com/barista-run/barista/modules/clock"
+	"github.com/barista-run/barista/outputs"
+	"github.com/barista-run/barista/pango"
 	"github.com/juli3nk/go-utils/user"
 )
 
-/*
-func truncate(in string, l int) string {
-	if len([]rune(in)) <= l {
-		return in
-	}
-	return string([]rune(in)[:l-1]) + "⋯"
+func home(path ...string) string {
+	usr := user.New()
+
+	args := append([]string{usr.HomeDir}, path...)
+	return filepath.Join(args...)
 }
-*/
+
+func makeTzClock(lbl, tzName string) bar.Module {
+	c, err := clock.ZoneByName(tzName)
+	if err != nil {
+		panic(err)
+	}
+	return c.Output(time.Minute, func(now time.Time) bar.Output {
+		return outputs.Pango(
+			pango.Text(lbl).Smaller(),
+			spacer,
+			now.Format("15:04"),
+		)
+	})
+}
+
+func threshold(out *bar.Segment, urgent bool, color ...bool) *bar.Segment {
+	if urgent {
+		return out.Urgent(true)
+	}
+	colorKeys := []string{"critical", "degraded", "warning", "good"}
+	for i, c := range colorKeys {
+		if len(color) > i && color[i] {
+			return out.Color(colors.Scheme(c))
+		}
+	}
+	return out
+}
+
 func truncate(in string, l int) string {
 	fromStart := false
 	if l < 0 {
@@ -29,18 +60,4 @@ func truncate(in string, l int) string {
 		return "⋯" + string([]rune(in)[inLen-l+1:])
 	}
 	return string([]rune(in)[:l-1]) + "⋯"
-}
-
-func home(path ...string) string {
-	usr := user.New()
-
-	args := append([]string{usr.HomeDir}, path...)
-	return filepath.Join(args...)
-}
-
-func hms(d time.Duration) (h int, m int, s int) {
-	h = int(d.Hours())
-	m = int(d.Minutes()) % 60
-	s = int(d.Seconds()) % 60
-	return
 }

@@ -1,45 +1,48 @@
 package main
 
 import (
-	"barista.run/bar"
-	"barista.run/base/click"
-	"barista.run/colors"
-	"barista.run/outputs"
-	"barista.run/pango"
+	"github.com/barista-run/barista/bar"
+	"github.com/barista-run/barista/base/click"
+	"github.com/barista-run/barista/colors"
+	"github.com/barista-run/barista/outputs"
+	"github.com/barista-run/barista/pango"
 
-	"github.com/juli3nk/barista-module-wlan"
+	"github.com/juli3nk/mybar-barista/modules/wlan"
 )
 
 func outputWifi(i wlan.Info) bar.Output {
-	if !i.Connecting() && !i.Connected() {
-		mainModalController.SetOutput("network", makeIconOutput("󰖪"))
-		return nil
-	}
-
-	mainModalController.SetOutput("network", makeIconOutput("󰖩"))
 	if i.Connecting() {
-		return outputs.Pango(pango.Text("mdi-wifi").Alpha(0.6), "...").
-			Color(colors.Scheme("degraded"))
+		return outputs.Pango(
+			pango.Icon("mdi-wifi"),
+			"...",
+		).Color(colors.Scheme("degraded"))
 	}
 
 	out := outputs.Group()
 
 	// First segment shown in summary mode only.
 	out.Append(outputs.Pango(
-		pango.Text("󰖩").Alpha(0.6),
+		pango.Icon("mdi-wifi").Color(colors.Scheme("color10")),
+		spacer,
 		pango.Text(truncate(i.SSID, -9)),
 	).OnClick(click.Left(func() {
 		mainModalController.Toggle("network")
 	})))
 
-	// Full name, frequency, bssid in detail mode
+	// Full name
 	out.Append(outputs.Pango(
-		pango.Text("󰖩").Alpha(0.6),
+		pango.Icon("mdi-wifi"),
+		spacer,
 		pango.Text(i.SSID),
 	))
+
+	// Frequency
 	out.Append(outputs.Textf("%2.1fG", i.Frequency.Gigahertz()))
+
+	// Mac address
 	out.Append(outputs.Pango(
-		pango.Text("󰀃").Alpha(0.8),
+		pango.Icon("mdi-access-point"),
+		spacer,
 		pango.Text(i.AccessPointMAC).Small(),
 	))
 

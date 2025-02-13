@@ -1,86 +1,81 @@
-// Copyright 2017 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-// sample-bar demonstrates a sample i3bar built using barista.
 package main
 
 import (
+	"flag"
 	"time"
 
-	"barista.run"
-	"barista.run/bar"
-	"barista.run/colors"
-	"barista.run/group/modal"
-	"barista.run/outputs"
-	"barista.run/pango"
+	"github.com/barista-run/barista"
+	"github.com/barista-run/barista/bar"
+	"github.com/barista-run/barista/colors"
+	"github.com/barista-run/barista/group/modal"
+	"github.com/barista-run/barista/pango"
+	"github.com/barista-run/barista/pango/icons/fontawesome"
+	"github.com/barista-run/barista/pango/icons/mdi"
 
-	"barista.run/modules/battery"
-	"barista.run/modules/clock"
-	"barista.run/modules/cputemp"
-	"barista.run/modules/meminfo"
-	"barista.run/modules/meta/split"
-	"barista.run/modules/sysinfo"
-	"github.com/juli3nk/barista-module-brightness"
-	"github.com/juli3nk/barista-module-wlan"
+	"github.com/barista-run/barista/modules/battery"
+	"github.com/barista-run/barista/modules/clock"
+	"github.com/barista-run/barista/modules/cputemp"
+	"github.com/barista-run/barista/modules/meminfo"
+	"github.com/barista-run/barista/modules/meta/split"
+	"github.com/barista-run/barista/modules/sysinfo"
+	"github.com/juli3nk/mybar-barista/modules/kbd"
+	"github.com/juli3nk/mybar-barista/modules/wlan"
+	"github.com/juli3nk/mybar-barista/version"
 
-	colorful "github.com/lucasb-eyer/go-colorful"
+	brightness "github.com/juli3nk/barista-module-brightness"
+	volume "github.com/juli3nk/barista-module-volume"
+	security "github.com/juli3nk/mybar-barista/modules/security"
 )
+
+var flgVersion bool
 
 var spacer = pango.Text(" ").XXSmall()
 var mainModalController modal.Controller
 
-func makeIconOutput(key string) *bar.Segment {
-	return outputs.Pango(spacer, pango.Text(key), spacer)
+func init() {
+	flag.BoolVar(&flgVersion, "version", false, "print version and exit")
+	flag.Parse()
+
+	colors.LoadFromMap(map[string]string{
+		"default":  "#cccccc",
+		"good":     "#4caf50",
+		"warning":  "#ffd760",
+		"degraded": "#ff9f40",
+		"critical": "#ff5454",
+		"disabled": "#777777",
+		"color0":   "#2e3440",
+		"color1":   "#3b4252",
+		"color2":   "#434c5e",
+		"color3":   "#4c566a",
+		"color4":   "#d8dee9",
+		"color5":   "#e5e9f0",
+		"color6":   "#eceff4",
+		"color7":   "#8fbcbb",
+		"color8":   "#88c0d0",
+		"color9":   "#81a1c1",
+		"color10":  "#5e81ac",
+		"color11":  "#bf616a",
+		"color12":  "#d08770",
+		"color13":  "#ebcb8b",
+		"color14":  "#a3be8c",
+		"color15":  "#b48ead",
+	})
 }
 
 func main() {
-	// Config
-	colors.LoadBarConfig()
-	bg := colors.Scheme("background")
-	fg := colors.Scheme("statusline")
-	if fg != nil && bg != nil {
-		_, _, v := fg.Colorful().Hsv()
-		if v < 0.3 {
-			v = 0.3
-		}
-		colors.Set("bad", colorful.Hcl(40, 1.0, v).Clamped())
-		colors.Set("degraded", colorful.Hcl(90, 1.0, v).Clamped())
-		colors.Set("good", colorful.Hcl(120, 1.0, v).Clamped())
+	if flgVersion {
+		ver := version.New()
+		ver.Show()
+		return
 	}
 
-	// Datetime
-	localtime := clock.Local().Output(time.Second, outputLocaltime)
-
-	// Brightness
-	bn := brightness.New().Output(outputBrightness)
-
-	// Battery
-	battSummary, battDetail := split.New(battery.All().Output(outputBattery), 1)
-
-	// Wifi
-	wifiName, wifiDetails := split.New(wlan.Any().Output(outputWifi), 1)
+	// Fonts
+	mdi.Load(home(".local/Github/MaterialDesign-Webfont"))
+	fontawesome.Load(home(".local/Github/Font-Awesome"))
 
 	// Sys info
 	// Load average
-	loadAvg := sysinfo.New().Output(outputLoadAvg)
-
-	loadAvgDetail := sysinfo.New().Output(func(s sysinfo.Info) bar.Output {
-		return pango.Textf("%0.2f %0.2f", s.Loads[1], s.Loads[2]).Smaller()
-	})
-
-	// Uptime
-	uptime := sysinfo.New().Output(outputUptime)
+	loadAvg, loadAvgDetail := split.New(sysinfo.New().Output(outputLoadAvg), 1)
 
 	// Free memory
 	freeMem := meminfo.New().Output(outputFreeMem)
@@ -88,29 +83,83 @@ func main() {
 	// Swap memory
 	swapMem := meminfo.New().Output(outputSwapMem)
 
-	temp := cputemp.New().RefreshInterval(2 * time.Second).Output(outputTemp)
+	// CPU temperature
+	cpuTemp := cputemp.New().RefreshInterval(2 * time.Second).Output(outputTemp)
+
+	// Keyboard layout
+	kbdlayout := kbd.New().Output(outputKeyboardLayout)
+
+	// Brightness
+	bn := brightness.New().Output(outputBrightness)
+
+	// Volume
+	// Speaker/Headphones volume (auto-detects active device)
+	speaker := volume.New("@DEFAULT_AUDIO_SINK@", false).Output(outputVolumeSpeaker)
+
+	// Microphone volume
+	microphone := volume.New("@DEFAULT_AUDIO_SOURCE@", true).Output(outputVolumeMicrophone)
+
+	// Battery
+	battSummary, battDetails := split.New(battery.All().Output(outputBattery), 1)
+
+	// Security
+	securityGlobal, securityDetails := split.New(
+		security.New(home(".config/local/net.json")).Output(outputSecurity), 1,
+	)
+
+	// Wifi
+	wifiName, wifiDetails := split.New(wlan.Any().Output(outputWifi), 1)
+
+	// Datetime
+	localdate := clock.Local().Output(time.Second, outputLocaldate)
+	localtime := clock.Local().Output(time.Second, outputLocaltime)
 
 	// Display
 	mainModal := modal.New()
 
-	mainModal.Mode("sysinfo").
-		SetOutput(makeIconOutput("󰄧")).
-		Add(loadAvg).
-		Detail(loadAvgDetail, uptime).
-		Add(freeMem).
-		Detail(swapMem, temp)
+	mainModal.Mode("cpu").
+		SetOutput(nil).
+		Detail(loadAvgDetail, cpuTemp)
 
-	mainModal.Mode("network").
-		SetOutput(makeIconOutput("󰈀")).
-		Add(wifiName).
-		Detail(wifiDetails)
+	mainModal.Mode("mem").
+		SetOutput(nil).
+		Detail(swapMem)
+
+	mainModal.Mode("volume").
+		SetOutput(nil).
+		Detail(microphone)
 
 	mainModal.Mode("battery").
 		SetOutput(nil).
-		Summary(battSummary).
-		Detail(battDetail)
+		Detail(battDetails)
+
+	mainModal.Mode("security").
+		SetOutput(nil).
+		Detail(securityDetails)
+
+	mainModal.Mode("network").
+		SetOutput(nil).
+		Detail(wifiDetails)
+
+	mainModal.Mode("timezones").
+		SetOutput(nil).
+		Detail(makeTzClock("Montreal", "America/Toronto")).
+		Detail(makeTzClock("UTC", "Etc/UTC"))
 
 	var mm bar.Module
 	mm, mainModalController = mainModal.Build()
-	panic(barista.Run(mm, bn, localtime))
+
+	panic(barista.Run(
+		mm,
+		loadAvg,
+		freeMem,
+		kbdlayout,
+		bn,
+		speaker,
+		battSummary,
+		securityGlobal,
+		wifiName,
+		localdate,
+		localtime,
+	))
 }

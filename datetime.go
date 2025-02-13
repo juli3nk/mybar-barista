@@ -3,18 +3,27 @@ package main
 import (
 	"time"
 
-	"barista.run/bar"
-	"barista.run/base/click"
-	"barista.run/colors"
-	"barista.run/outputs"
-	"barista.run/pango"
+	"github.com/barista-run/barista/bar"
+	"github.com/barista-run/barista/base/click"
+	"github.com/barista-run/barista/colors"
+	"github.com/barista-run/barista/outputs"
+	"github.com/barista-run/barista/pango"
 )
+
+func outputLocaldate(now time.Time) bar.Output {
+	return outputs.Pango(
+		pango.Icon("mdi-calendar-today").Color(colors.Scheme("color10")),
+		spacer,
+		now.Format("Mon Jan 2"),
+	).OnClick(click.RunLeft("gsimplecal"))
+}
 
 func outputLocaltime(now time.Time) bar.Output {
 	return outputs.Pango(
-		pango.Text("󰃶").Color(colors.Scheme("dim-icon")),
-		now.Format("Mon Jan 2 "),
-		pango.Text("󱑏").Color(colors.Scheme("dim-icon")),
+		pango.Icon("mdi-clock-time-five-outline").Color(colors.Scheme("color10")),
+		spacer,
 		now.Format("15:04:05"),
-	).OnClick(click.RunLeft("gsimplecal"))
+	).OnClick(click.Left(func() {
+		mainModalController.Toggle("timezones")
+	}))
 }

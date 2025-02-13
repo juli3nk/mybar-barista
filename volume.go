@@ -1,25 +1,44 @@
 package main
 
-	/*
-	vol := volume.New().Output(func(v volume.Volume) bar.Output {
-		if v.Mute {
-			return outputs.
-				Pango(pango.Icon("fa-volume-mute").Alpha(0.8), spacer, "MUT").
-				Color(colors.Scheme("degraded"))
-		}
+import (
+	"github.com/barista-run/barista/bar"
+	"github.com/barista-run/barista/base/click"
+	"github.com/barista-run/barista/colors"
+	"github.com/barista-run/barista/outputs"
+	"github.com/barista-run/barista/pango"
+)
 
-		iconName := "off"
-		pct := v.Pct()
-		if pct > 66 {
-			iconName = "up"
-		} else if pct > 33 {
-			iconName = "down"
+func outputVolumeSpeaker(vol int, muted, isMic bool) bar.Output {
+	iconName := "low"
+	if muted {
+		iconName = "off"
+	} else {
+		if vol >= 40 {
+			iconName = "medium"
 		}
+		if vol >= 70 {
+			iconName = "high"
+		}
+	}
 
-		return outputs.Pango(
-			pango.Icon("fa-volume-"+iconName).Alpha(0.6),
-			spacer,
-			pango.Textf("%2d%%", pct),
-		)
-	})
-	*/
+	return outputs.Pango(
+		pango.Icon("mdi-volume-"+iconName).Color(colors.Scheme("color10")),
+		spacer,
+		pango.Textf("%d%%", vol),
+	).OnClick(click.Left(func() {
+		mainModalController.Toggle("volume")
+	}))
+}
+
+func outputVolumeMicrophone(vol int, muted, isMic bool) bar.Output {
+	iconName := "microphone"
+	if muted {
+		iconName = "microphone-off"
+	}
+
+	return outputs.Pango(
+		pango.Icon("mdi-"+iconName),
+		spacer,
+		pango.Textf("%d%%", vol),
+	)
+}

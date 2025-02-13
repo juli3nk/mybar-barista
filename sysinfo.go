@@ -1,127 +1,101 @@
 package main
 
 import (
-	"os/exec"
-	"strings"
 	"time"
 
-	"barista.run/bar"
-	"barista.run/base/click"
-	"barista.run/colors"
-	"barista.run/format"
-	"barista.run/outputs"
-	"barista.run/pango"
+	"github.com/barista-run/barista/bar"
+	"github.com/barista-run/barista/base/click"
+	"github.com/barista-run/barista/colors"
+	"github.com/barista-run/barista/format"
+	"github.com/barista-run/barista/outputs"
+	"github.com/barista-run/barista/pango"
 
-	"barista.run/modules/meminfo"
-	"barista.run/modules/sysinfo"
+	"github.com/barista-run/barista/modules/meminfo"
+	"github.com/barista-run/barista/modules/sysinfo"
 
 	"github.com/martinlindhe/unit"
 )
 
-func deviceForMountPath(path string) string {
-	mnt, _ := exec.Command("df", "-P", path).Output()
-	lines := strings.Split(string(mnt), "\n")
-	if len(lines) > 1 {
-		devAlias := strings.Split(lines[1], " ")[0]
-		dev, _ := exec.Command("realpath", devAlias).Output()
-		devStr := strings.TrimSpace(string(dev))
-		if devStr != "" {
-			return devStr
-		}
-		return devAlias
-	}
-	return ""
-}
-
-func threshold(out *bar.Segment, urgent bool, color ...bool) *bar.Segment {
-	if urgent {
-		return out.Urgent(true)
-	}
-	colorKeys := []string{"bad", "degraded", "good"}
-	for i, c := range colorKeys {
-		if len(color) > i && color[i] {
-			return out.Color(colors.Scheme(c))
-		}
-	}
-	return out
-}
-
-// icon: cpu
 func outputLoadAvg(s sysinfo.Info) bar.Output {
-	out := outputs.Pango(
-		pango.Text("").Alpha(0.6),
+	out := outputs.Group()
+
+	loadFirst := outputs.Pango(
+		pango.Icon("mdi-cpu-64-bit").Color(colors.Scheme("color10")),
+		spacer,
 		pango.Textf("%0.2f", s.Loads[0]),
-	)
-
-	// Load averages are unusually high for a few minutes after boot.
-	if s.Uptime < 10*time.Minute {
-		// so don't add colours until 10 minutes after system start.
-		return out
-	}
-
-	threshold(out,
-		s.Loads[0] > 128 || s.Loads[2] > 64,
-		s.Loads[0] > 64 || s.Loads[2] > 32,
-		s.Loads[0] > 32 || s.Loads[2] > 16,
-	)
-	out.OnClick(click.Left(func() {
-		mainModalController.Toggle("sysinfo")
+	).OnClick(click.Left(func() {
+		mainModalController.Toggle("cpu")
 	}))
 
-	return out
-}
-
-// icon: trending-up
-func outputUptime(s sysinfo.Info) bar.Output {
-	u := s.Uptime
-	var uptimeOut *pango.Node
-	if u.Hours() < 24 {
-		uptimeOut = pango.Textf("%d:%02d",
-			int(u.Hours()), int(u.Minutes())%60)
-	} else {
-		uptimeOut = pango.Textf("%dd%02dh",
-			int(u.Hours()/24), int(u.Hours())%24)
+	// Load averages are unusually high for a few minutes after boot.
+	// so don't add colours until 10 minutes after system start.
+	if s.Uptime > 10*time.Minute {
+		threshold(loadFirst,
+			false,
+			s.Loads[0] > 128 || s.Loads[2] > 64,
+			s.Loads[0] > 64 || s.Loads[2] > 32,
+			s.Loads[0] > 32 || s.Loads[2] > 16,
+			false,
+		)
 	}
-	return pango.Text("󰔵").Alpha(0.6).Concat(uptimeOut)
+
+	out.Append(loadFirst)
+
+	// Others in detail mode
+	out.Append(outputs.Pango(
+		pango.Textf("%0.2f %0.2f", s.Loads[1], s.Loads[2]).Smaller(),
+	))
+
+	return out
 }
 
 // Free memory
-// icon: memory
 func outputFreeMem(m meminfo.Info) bar.Output {
 	out := outputs.Pango(
-		pango.Text("󰍛").Alpha(0.8),
+		pango.Icon("mdi-memory").Color(colors.Scheme("color10")),
+		spacer,
 		format.IBytesize(m.Available()),
 	)
+
 	freeGigs := m.Available().Gigabytes()
 	threshold(out,
+		false,
 		freeGigs < 0.5,
 		freeGigs < 1,
 		freeGigs < 2,
-		freeGigs > 12)
+	)
+
 	out.OnClick(click.Left(func() {
-		mainModalController.Toggle("sysinfo")
+		mainModalController.Toggle("mem")
 	}))
+
 	return out
 }
 
 // Swap memory
 func outputSwapMem(m meminfo.Info) bar.Output {
 	return outputs.Pango(
-		pango.Text("󰓡").Alpha(0.8),
-		format.IBytesize(m["SwapTotal"]-m["SwapFree"]), spacer,
-		pango.Textf("(% 2.0f%%)", (1-m.FreeFrac("Swap"))*100.0).Small(),
+		pango.Icon("mdi-swap-horizontal"),
+		spacer,
+		format.IBytesize(m["SwapTotal"]-m["SwapFree"]),
+		spacer,
+		pango.Textf("(%2.0f%%)", (1-m.FreeFrac("Swap"))*100.0).Small(),
 	)
 }
 
 func outputTemp(temp unit.Temperature) bar.Output {
 	out := outputs.Pango(
-		pango.Text("󰈐").Alpha(0.6), spacer,
+		pango.Icon("mdi-fan"),
+		spacer,
 		pango.Textf("%2d℃", int(temp.Celsius())),
 	)
+
 	threshold(out,
+		false,
 		temp.Celsius() > 90,
 		temp.Celsius() > 70,
 		temp.Celsius() > 60,
 	)
+
 	return out
 }

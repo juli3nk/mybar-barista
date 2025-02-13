@@ -1,0 +1,31 @@
+{
+  "name": "MyBar",
+  "image": "mcr.microsoft.com/vscode/devcontainers/base:ubuntu-24.04",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      "dockerDashComposeVersion": "none"
+    },
+    "ghcr.io/devcontainers/features/go:1": {
+      "version": "1.23"
+    },
+    "ghcr.io/devcontainers-extra/features/asdf-package:1": {
+      "plugin": "dagger",
+      "version": "0.16.1"
+    }
+  },
+  "mounts": [
+    {"type": "bind", "source": "/var/run/dbus", "target": "/var/run/dbus"},
+    {"type": "bind", "source": "${localEnv:HOME}/.config/local", "target": "/home/vscode/.config/local"}
+  ],
+  "capAdd": [
+    "NET_ADMIN"
+  ],
+  "securityOpt": [
+    "seccomp=unconfined",
+    "apparmor=unconfined"
+  ],
+  "containerEnv": {
+    "DAGGER_NO_NAG": "1"
+  },
+	"workspaceMount": "type=bind,source=${localWorkspaceFolder},target=${containerWorkspaceFolder}"
+}

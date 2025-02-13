@@ -7,10 +7,10 @@ import (
 	"github.com/barista-run/barista/pango"
 )
 
-func outputBrightness(value int) bar.Output {
+func outputKeyboardLayout(layout string) bar.Output {
 	return outputs.Pango(
-		pango.Icon("mdi-brightness-5").Color(colors.Scheme("color13")),
+		pango.Icon("mdi-keyboard-variant").Color(colors.Scheme("color10")),
 		spacer,
-		pango.Textf("%d%%", value),
+		pango.Text(layout),
 	)
 }
