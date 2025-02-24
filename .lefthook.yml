@@ -1,0 +1,36 @@
+assert_lefthook_installed: true
+skip_lfs: true
+
+pre-commit:
+  parallel: true
+  jobs:
+    - name: format
+      group:
+        jobs:
+          - files: git diff --name-only main
+            glob: "*.go"
+            env:
+              DAGGER_NO_NAG: 1
+            run: dagger --source . call lint-gofmt --check-only-modified-files=true
+
+    - name: lint
+      group:
+        jobs:
+          - files: git diff --name-only main
+            glob: "*.go"
+            env:
+              DAGGER_NO_NAG: 1
+            run: dagger --source . call lint-golang --check-only-modified-files=true
+
+          - files: git diff --name-only main
+            glob: "*.json"
+            env:
+              DAGGER_NO_NAG: 1
+            run: dagger --source . call lint-json-file --check-only-modified-files=true
+
+commit-msg:
+  commands:
+    'lint commit message':
+      env:
+        DAGGER_NO_NAG: 1
+      run: dagger --source . call lint-commit-msg --args '--edit' --args {1}

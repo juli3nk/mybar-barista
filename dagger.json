@@ -1,0 +1,40 @@
+{
+  "name": "mybar-barista",
+  "engineVersion": "v0.16.1",
+  "sdk": {
+    "source": "go"
+  },
+  "dependencies": [
+    {
+      "name": "commitlint",
+      "source": "github.com/cloudnative-pg/daggerverse/commitlint",
+      "pin": "a20e0c26fbaed660d9970eecb9f1381149b90f01"
+    },
+    {
+      "name": "gh",
+      "source": "github.com/sagikazarmark/daggerverse/gh",
+      "pin": "a2a82eaee0a9f6668ee7f191de08c9fc61d7b3dc"
+    },
+    {
+      "name": "gitlocal",
+      "source": "github.com/juli3nk/daggerverse/gitlocal",
+      "pin": "7720e71d912bff4ff71b5e49a13e5fa72394ac4a"
+    },
+    {
+      "name": "go",
+      "source": "github.com/juli3nk/daggerverse/go",
+      "pin": "bc1444867a228356d8943fefc78c35dbae8f6ee5"
+    },
+    {
+      "name": "jsonfile",
+      "source": "github.com/juli3nk/daggerverse/jsonfile",
+      "pin": "7720e71d912bff4ff71b5e49a13e5fa72394ac4a"
+    },
+    {
+      "name": "semantic-release",
+      "source": "github.com/juli3nk/daggerverse/semantic-release",
+      "pin": "7720e71d912bff4ff71b5e49a13e5fa72394ac4a"
+    }
+  ],
+  "source": ".dagger"
+}
