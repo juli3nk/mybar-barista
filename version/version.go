@@ -4,6 +4,7 @@ import (
 	"os"
 	"runtime"
 	"strconv"
+	"strings"
 	"text/template"
 	"time"
 )
@@ -11,7 +12,6 @@ import (
 var (
 	Version   = "unknown-version"
 	GitCommit = "unknown-commit"
-	GitState  = "unknown-state"
 	BuildDate = "unknown-builddate"
 )
 
@@ -41,15 +41,20 @@ func New() *VersionInfo {
 
 	tu := time.Unix(i, 0)
 
-	return &VersionInfo{
+	vi := VersionInfo{
 		Version:   Version,
 		GoVersion: runtime.Version(),
 		GitCommit: GitCommit,
-		GitState:  GitState,
 		BuildDate: tu.String(),
 		OS:        runtime.GOOS,
 		Arch:      runtime.GOARCH,
 	}
+
+	if strings.HasSuffix(Version, "-dirty") {
+		vi.GitState = "dirty"
+	}
+
+	return &vi
 }
 
 func (i *VersionInfo) Show() {
