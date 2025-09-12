@@ -20,7 +20,7 @@ import (
 	"github.com/barista-run/barista/modules/sysinfo"
 	"github.com/juli3nk/mybar-barista/modules/kbd"
 	"github.com/juli3nk/mybar-barista/modules/wlan"
-	"github.com/juli3nk/mybar-barista/version"
+	"github.com/juli3nk/mybar-barista/pkg/version"
 
 	brightness "github.com/juli3nk/barista-module-brightness"
 	volume "github.com/juli3nk/barista-module-volume"
