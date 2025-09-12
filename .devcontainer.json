@@ -6,11 +6,11 @@
       "dockerDashComposeVersion": "none"
     },
     "ghcr.io/devcontainers/features/go:1": {
-      "version": "1.23"
+      "version": "1.24"
     },
     "ghcr.io/devcontainers-extra/features/asdf-package:1": {
       "plugin": "dagger",
-      "version": "0.16.1"
+      "version": "0.18.16"
     }
   },
   "mounts": [
