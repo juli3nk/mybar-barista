@@ -1,0 +1,75 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      DAGGER_NO_NAG: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Call Dagger Function to lint commit message
+        uses: dagger/dagger-for-github@8.0.0
+        with:
+          call: --source . lint-commit-msg --args '--last'
+
+  lint:
+    runs-on: ubuntu-latest
+    needs: [ci]
+    permissions:
+      contents: read
+    env:
+      DAGGER_NO_NAG: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Call Dagger Function to lint go files
+        uses: dagger/dagger-for-github@8.0.0
+        with:
+          call: --source . lint-golang --check-only-modified-files=true
+
+      - name: Call Dagger Function to lint json files
+        uses: dagger/dagger-for-github@8.0.0
+        with:
+          call: --source . lint-json-file --check-only-modified-files=true
+
+  format:
+    runs-on: ubuntu-latest
+    needs: [ci]
+    permissions:
+      contents: read
+    env:
+      DAGGER_NO_NAG: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Call Dagger Function to format go files
+        uses: dagger/dagger-for-github@8.0.0
+        with:
+          call: --source . format-go --check-only-modified-files=true
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [ci, lint, format]
+    permissions:
+      contents: read
+    env:
+      DAGGER_NO_NAG: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Call Dagger Function to build
+        uses: dagger/dagger-for-github@8.0.0
+        with:
+          call: --source . build stdout
