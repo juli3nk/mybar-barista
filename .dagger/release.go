@@ -13,28 +13,23 @@ func (m *MybarBarista) Release(
 	// +optional
 	repositoryUrl string,
 	// +optional
-	// +default=true
+	// +default=false
 	dryRun bool,
 	// +optional
 	// +default=false
 	ci bool,
 	// +optional
 	// +default=false
-	debug bool,
+	debugMode bool,
 ) (string, error) {
-	opts := dagger.SemanticReleaseRunOpts{}
+	opts := dagger.SemanticReleaseRunOpts{
+		DryRun:    dryRun,
+		Ci:        ci,
+		DebugMode: debugMode,
+	}
 
 	if len(repositoryUrl) > 0 {
 		opts.RepositoryURL = repositoryUrl
-	}
-	if dryRun {
-		opts.DryRun = true
-	}
-	if ci {
-		opts.Ci = true
-	}
-	if debug {
-		opts.Debug = true
 	}
 
 	secretEnvVarName := "GITHUB_TOKEN"

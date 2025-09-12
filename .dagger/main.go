@@ -61,5 +61,7 @@ func New(
 		return nil, err
 	}
 
-	return &MybarBarista{Worktree: source, Git: git}, nil
+	app := MybarBarista{Worktree: source, Git: git}
+
+	return &app, nil
 }

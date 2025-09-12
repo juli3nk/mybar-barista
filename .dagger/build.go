@@ -15,8 +15,8 @@ import (
 )
 
 type MybarBuild struct {
-	Git    *Git
-	BinDir *dagger.Directory
+	Git      *Git
+	BinFiles []*dagger.File
 }
 
 // Build binaries
@@ -34,7 +34,7 @@ func (m *MybarBarista) Build(
 	}
 
 	appVersion := ci.ResolveVersion(version, m.Git.Tag, m.Git.Commit, m.Git.Uncommitted)
-	goAppVersionPkgPath := fmt.Sprintf("%s/version", appSourceUrl)
+	goAppVersionPkgPath := fmt.Sprintf("%s/pkg/version", appSourceUrl)
 	tsNow := time.Now()
 
 	goBuildPackages := []string{"."}
@@ -47,7 +47,7 @@ func (m *MybarBarista) Build(
 	var wg sync.WaitGroup
 	errorsChan := make(chan error, len(platforms))
 
-	output := dag.Directory()
+	output := []*dagger.File{}
 
 	for _, platform := range platforms {
 		wg.Add(1)
@@ -60,10 +60,9 @@ func (m *MybarBarista) Build(
 				Arch:       platform.Architecture,
 				Os:         platform.OS,
 			}
-			binaryName := fmt.Sprintf("%s-%s-%s-v%s", appName, platform.OS, platform.Architecture, appVersion)
-			goBuilder := dag.Go(goVersion, m.Worktree).Build(binaryName, goBuildPackages, opts)
+			goBuilder := dag.Go(goVersion, m.Worktree).Build(appName, goBuildPackages, opts)
 
-			output = output.WithFile(binaryName, goBuilder)
+			output = append(output, goBuilder)
 			errorsChan <- nil
 		}(platform)
 	}
@@ -83,28 +82,37 @@ func (m *MybarBarista) Build(
 	}
 
 	return &MybarBuild{
-		Git:    m.Git,
-		BinDir: output,
+		Git:      m.Git,
+		BinFiles: output,
 	}, nil
 }
 
 func (m *MybarBuild) Stdout(ctx context.Context) (string, error) {
-	files, err := m.BinDir.Entries(ctx)
-	if err != nil {
-		return "", fmt.Errorf("failed to list build directory entries: %w", err)
+	outputs := []string{}
+
+	for _, file := range m.BinFiles {
+		name, err := file.Name(ctx)
+		if err != nil {
+			return "", err
+		}
+
+		outputs = append(outputs, name)
 	}
 
-	return strings.Join(files, "\n"), nil
+	return strings.Join(outputs, "\n"), nil
 }
 
-func (m *MybarBuild) Dir() *dagger.Directory {
-	return m.BinDir
-}
+func (m *MybarBuild) Dir(ctx context.Context) (*dagger.Directory, error) {
+	dir := dag.Directory()
 
-// Export compiled binaries
-// func (m *MybarBuild) Export(
-// 	ctx context.Context,
-// 	path string,
-// ) (string, error) {
-// 	return m.BinDir.Export(ctx, path)
-// }
+	for _, file := range m.BinFiles {
+		name, err := file.Name(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		dir = dir.WithFile(name, file)
+	}
+
+	return dir, nil
+}

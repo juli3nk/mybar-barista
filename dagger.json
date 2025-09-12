@@ -1,6 +1,6 @@
 {
   "name": "mybar-barista",
-  "engineVersion": "v0.16.1",
+  "engineVersion": "v0.18.16",
   "sdk": {
     "source": "go"
   },
@@ -23,7 +23,7 @@
     {
       "name": "go",
       "source": "github.com/juli3nk/daggerverse/go",
-      "pin": "bc1444867a228356d8943fefc78c35dbae8f6ee5"
+      "pin": "13251b94e0cc875b6ea663dcf5e7375f206a0296"
     },
     {
       "name": "jsonfile",
@@ -33,7 +33,7 @@
     {
       "name": "semantic-release",
       "source": "github.com/juli3nk/daggerverse/semantic-release",
-      "pin": "7720e71d912bff4ff71b5e49a13e5fa72394ac4a"
+      "pin": "13251b94e0cc875b6ea663dcf5e7375f206a0296"
     }
   ],
   "source": ".dagger"
